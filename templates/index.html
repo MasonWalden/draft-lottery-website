@@ -2,50 +2,299 @@
 <html>
 <head>
     <title>Draft Lottery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #facc15;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: #020617;
+            color: white;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: #facc15;
+            color: #111827;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #fde047;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #334155;
+            text-align: left;
+        }
+
+        th {
+            background: #1e293b;
+            color: #facc15;
+        }
+
+        tr.moved-up {
+            background: rgba(34, 197, 94, 0.14);
+        }
+
+        tr.moved-down {
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        tr.stayed {
+            background: rgba(148, 163, 184, 0.08);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .up {
+            background: #22c55e;
+            color: #052e16;
+        }
+
+        .down {
+            background: #ef4444;
+            color: white;
+        }
+
+        .same {
+            background: #64748b;
+            color: white;
+        }
+
+        .pick-winner {
+            font-weight: bold;
+            color: #facc15;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 12px;
+            }
+
+            th, td {
+                font-size: 13px;
+                padding: 9px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Draft Lottery</h1>
-    <p>12-Team League • 6-Team Lottery</p>
+    <div class="container">
+        <div class="card">
+            <h1>Draft Lottery</h1>
+            <p>12-Team League • 6-Team Lottery • Top 3 Picks Drawn</p>
+            <p>No lottery team can fall more than 2 spots.</p>
+        </div>
 
-    <form method="POST">
-        <p><input name="team1" type="text" placeholder="Seed 1 - Worst Team"></p>
-        <p><input name="team2" type="text" placeholder="Seed 2"></p>
-        <p><input name="team3" type="text" placeholder="Seed 3"></p>
-        <p><input name="team4" type="text" placeholder="Seed 4"></p>
-        <p><input name="team5" type="text" placeholder="Seed 5"></p>
-        <p><input name="team6" type="text" placeholder="Seed 6 - Best Lottery Team"></p>
+        <div class="card">
+            <h2>Official Lottery Odds</h2>
 
-        <button type="submit">Run Lottery</button>
-    </form>
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Lottery Seed</th>
+                        <th>Pick 1</th>
+                        <th>Pick 2</th>
+                        <th>Pick 3</th>
+                        <th>Pick 4</th>
+                        <th>Pick 5</th>
+                        <th>Pick 6</th>
+                    </tr>
 
-    {% if results %}
-        <h2>Lottery Results</h2>
+                    <tr>
+                        <td>1 - Worst Team</td>
+                        <td>22.00%</td>
+                        <td>22.34%</td>
+                        <td>55.66%</td>
+                        <td>0%</td>
+                        <td>0%</td>
+                        <td>0%</td>
+                    </tr>
 
-        <table border="1" cellpadding="8">
-            <tr>
-                <th>Draft Pick</th>
-                <th>Team</th>
-                <th>Original Seed</th>
-                <th>Movement</th>
-            </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>20.00%</td>
+                        <td>20.31%</td>
+                        <td>11.79%</td>
+                        <td>47.90%</td>
+                        <td>0%</td>
+                        <td>0%</td>
+                    </tr>
 
-            {% for row in results %}
-            <tr>
-                <td>Pick {{ row.pick }}</td>
-                <td>{{ row.team }}</td>
-                <td>Seed {{ row.seed }}</td>
-                <td>
-                    {% if row.movement > 0 %}
-                        Moved up {{ row.movement }}
-                    {% elif row.movement < 0 %}
-                        Moved down {{ row.movement * -1 }}
-                    {% else %}
-                        Stayed
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% endif %}
+                    <tr>
+                        <td>3</td>
+                        <td>18.00%</td>
+                        <td>18.01%</td>
+                        <td>10.48%</td>
+                        <td>34.61%</td>
+                        <td>18.89%</td>
+                        <td>0%</td>
+                    </tr>
+
+                    <tr>
+                        <td>4</td>
+                        <td>16.00%</td>
+                        <td>15.48%</td>
+                        <td>8.71%</td>
+                        <td>17.49%</td>
+                        <td>37.39%</td>
+                        <td>4.93%</td>
+                    </tr>
+
+                    <tr>
+                        <td>5</td>
+                        <td>13.00%</td>
+                        <td>12.87%</td>
+                        <td>7.24%</td>
+                        <td>0%</td>
+                        <td>43.72%</td>
+                        <td>23.17%</td>
+                    </tr>
+
+                    <tr>
+                        <td>6 - Best Lottery Team</td>
+                        <td>11.00%</td>
+                        <td>10.98%</td>
+                        <td>6.12%</td>
+                        <td>0%</td>
+                        <td>0%</td>
+                        <td>71.90%</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p class="note">
+                Lottery draws determine Picks 1-3. Remaining picks are assigned by standings while ensuring no team falls more than two spots.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Enter Lottery Teams</h2>
+            <p>Enter teams from worst record to best lottery team.</p>
+
+            <form method="POST">
+                <div class="team-grid">
+                    <input name="team1" type="text" placeholder="Seed 1 - Worst Team">
+                    <input name="team2" type="text" placeholder="Seed 2">
+                    <input name="team3" type="text" placeholder="Seed 3">
+                    <input name="team4" type="text" placeholder="Seed 4">
+                    <input name="team5" type="text" placeholder="Seed 5">
+                    <input name="team6" type="text" placeholder="Seed 6 - Best Lottery Team">
+                </div>
+
+                <button type="submit">Run Lottery</button>
+            </form>
+        </div>
+
+        {% if results %}
+        <div class="card">
+            <h2>Lottery Results</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Draft Pick</th>
+                        <th>Team</th>
+                        <th>Original Seed</th>
+                        <th>Movement</th>
+                    </tr>
+
+                    {% for row in results %}
+                    <tr class="{% if row.movement > 0 %}moved-up{% elif row.movement < 0 %}moved-down{% else %}stayed{% endif %}">
+                        <td class="pick-winner">Pick {{ row.pick }}</td>
+                        <td>{{ row.team }}</td>
+                        <td>Seed {{ row.seed }}</td>
+                        <td>
+                            {% if row.movement > 0 %}
+                                <span class="badge up">Moved up {{ row.movement }}</span>
+                            {% elif row.movement < 0 %}
+                                <span class="badge down">Moved down {{ row.movement * -1 }}</span>
+                            {% else %}
+                                <span class="badge same">Stayed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
