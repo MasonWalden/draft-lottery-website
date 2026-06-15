@@ -5,20 +5,47 @@
 </head>
 <body>
     <h1>Draft Lottery</h1>
-
     <p>12-Team League • 6-Team Lottery</p>
 
-    <h2>Lottery Teams</h2>
-
-    <form>
-        <p><input type="text" placeholder="Seed 1 - Worst Team"></p>
-        <p><input type="text" placeholder="Seed 2"></p>
-        <p><input type="text" placeholder="Seed 3"></p>
-        <p><input type="text" placeholder="Seed 4"></p>
-        <p><input type="text" placeholder="Seed 5"></p>
-        <p><input type="text" placeholder="Seed 6 - Best Lottery Team"></p>
+    <form method="POST">
+        <p><input name="team1" type="text" placeholder="Seed 1 - Worst Team"></p>
+        <p><input name="team2" type="text" placeholder="Seed 2"></p>
+        <p><input name="team3" type="text" placeholder="Seed 3"></p>
+        <p><input name="team4" type="text" placeholder="Seed 4"></p>
+        <p><input name="team5" type="text" placeholder="Seed 5"></p>
+        <p><input name="team6" type="text" placeholder="Seed 6 - Best Lottery Team"></p>
 
         <button type="submit">Run Lottery</button>
     </form>
+
+    {% if results %}
+        <h2>Lottery Results</h2>
+
+        <table border="1" cellpadding="8">
+            <tr>
+                <th>Draft Pick</th>
+                <th>Team</th>
+                <th>Original Seed</th>
+                <th>Movement</th>
+            </tr>
+
+            {% for row in results %}
+            <tr>
+                <td>Pick {{ row.pick }}</td>
+                <td>{{ row.team }}</td>
+                <td>Seed {{ row.seed }}</td>
+                <td>
+                    {% if row.movement > 0 %}
+                        Moved up {{ row.movement }}
+                    {% elif row.movement < 0 %}
+                        Moved down {{ row.movement * -1 }}
+                    {% else %}
+                        Stayed
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
 </body>
 </html>
