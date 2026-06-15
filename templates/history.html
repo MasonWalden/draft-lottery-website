@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lottery History</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #facc15;
+        }
+
+        p {
+            color: #cbd5e1;
+        }
+
+        a {
+            color: #facc15;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            min-width: 800px;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #334155;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #1e293b;
+            color: #facc15;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Lottery History</h1>
+            <p>
+                <a href="/">Home</a>
+                |
+                <a href="/history">History</a>
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Runs by Date</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Runs</th>
+                    </tr>
+
+                    {% for date, count in daily_counts.items() %}
+                    <tr>
+                        <td>{{ date }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>All Lottery Runs</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>League Year</th>
+                        <th>Run #</th>
+                        <th>Pick 1</th>
+                        <th>Pick 2</th>
+                        <th>Pick 3</th>
+                        <th>Pick 4</th>
+                        <th>Pick 5</th>
+                        <th>Pick 6</th>
+                    </tr>
+
+                    {% for run in runs %}
+                    <tr>
+                        <td>{{ run.created_at }}</td>
+                        <td>{{ run.league_year }}</td>
+                        <td>{{ run.run_number }}</td>
+                        <td>{{ run.pick_1_team }}</td>
+                        <td>{{ run.pick_2_team }}</td>
+                        <td>{{ run.pick_3_team }}</td>
+                        <td>{{ run.pick_4_team }}</td>
+                        <td>{{ run.pick_5_team }}</td>
+                        <td>{{ run.pick_6_team }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
