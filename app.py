@@ -1,7 +1,14 @@
 from flask import Flask, render_template, request
 import random
+import os
+from supabase import create_client
 
 app = Flask(__name__)
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 PICK_1_WEIGHTS = [22, 20, 18, 16, 13, 11]
 PICK_2_WEIGHTS = [24, 21, 18, 15, 12, 10]
@@ -33,11 +40,64 @@ def enforce_max_drop(drawn):
     return final_order
 
 
+def get_next_run_number(league_year):
+    if not supabase:
+        return 1
+
+    response = (
+        supabase.table("lottery_runs")
+        .select("run_number")
+        .eq("league_year", league_year)
+        .order("run_number", desc=True)
+        .limit(1)
+        .execute()
+    )
+
+    if response.data:
+        return response.data[0]["run_number"] + 1
+
+    return 1
+
+
+def save_lottery_run(league_year, teams, results, final_order):
+    if not supabase:
+        return None
+
+    run_number = get_next_run_number(league_year)
+
+    row = {
+        "league_year": league_year,
+        "run_number": run_number,
+
+        "seed_1_team": teams[1],
+        "seed_2_team": teams[2],
+        "seed_3_team": teams[3],
+        "seed_4_team": teams[4],
+        "seed_5_team": teams[5],
+        "seed_6_team": teams[6],
+
+        "pick_1_team": results[0]["team"],
+        "pick_2_team": results[1]["team"],
+        "pick_3_team": results[2]["team"],
+        "pick_4_team": results[3]["team"],
+        "pick_5_team": results[4]["team"],
+        "pick_6_team": results[5]["team"],
+
+        "full_order": final_order,
+    }
+
+    supabase.table("lottery_runs").insert(row).execute()
+    return run_number
+
+
 @app.route("/", methods=["GET", "POST"])
 def home():
     results = None
+    saved_run_number = None
 
     if request.method == "POST":
+        league_year = int(request.form.get("league_year") or 2026)
+
         teams = {
             1: request.form.get("team1") or "Team 1",
             2: request.form.get("team2") or "Team 2",
@@ -64,12 +124,18 @@ def home():
                 "pick": index + 1,
                 "seed": seed,
                 "team": teams[seed],
-                "movement": seed - (index + 1)
+                "movement": seed - (index + 1),
             }
             for index, seed in enumerate(final_order)
         ]
 
-    return render_template("index.html", results=results)
+        saved_run_number = save_lottery_run(league_year, teams, results, final_order)
+
+    return render_template(
+        "index.html",
+        results=results,
+        saved_run_number=saved_run_number,
+    )
 
 
 if __name__ == "__main__":
