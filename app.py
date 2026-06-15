@@ -8,7 +8,7 @@ app = Flask(__name__)
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 PICK_1_WEIGHTS = [22, 20, 18, 16, 13, 11]
 PICK_2_WEIGHTS = [24, 21, 18, 15, 12, 10]
@@ -26,8 +26,8 @@ def enforce_max_drop(drawn):
 
     for pick in range(4, 7):
         remaining = [seed for seed in range(1, 7) if seed not in used]
-
         forced = None
+
         for seed in remaining:
             if pick > seed + 2:
                 forced = seed
@@ -41,9 +41,6 @@ def enforce_max_drop(drawn):
 
 
 def get_next_run_number(league_year):
-    if not supabase:
-        return 1
-
     response = (
         supabase.table("lottery_runs")
         .select("run_number")
@@ -60,9 +57,6 @@ def get_next_run_number(league_year):
 
 
 def save_lottery_run(league_year, teams, results, final_order):
-    if not supabase:
-        return None
-
     run_number = get_next_run_number(league_year)
 
     row = {
@@ -135,6 +129,30 @@ def home():
         "index.html",
         results=results,
         saved_run_number=saved_run_number,
+    )
+
+
+@app.route("/history")
+def history():
+    response = (
+        supabase.table("lottery_runs")
+        .select("*")
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    runs = response.data or []
+
+    daily_counts = {}
+
+    for run in runs:
+        date_only = run["created_at"][:10]
+        daily_counts[date_only] = daily_counts.get(date_only, 0) + 1
+
+    return render_template(
+        "history.html",
+        runs=runs,
+        daily_counts=daily_counts,
     )
 
 
