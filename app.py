@@ -20,20 +20,29 @@ def weighted_draw(available_seeds, weights):
     return random.choices(available_seeds, weights=available_weights, k=1)[0]
 
 
-def enforce_max_drop(drawn):
-    final_order = drawn[:]
+def build_final_order(first_two_picks):
+    final_order = first_two_picks[:]
     used = set(final_order)
 
-    for pick in range(4, 7):
+    for pick_number in range(3, 7):
         remaining = [seed for seed in range(1, 7) if seed not in used]
-        forced = None
+
+        forced_seed = None
 
         for seed in remaining:
-            if pick > seed + 2:
-                forced = seed
+            latest_allowed_pick = min(seed + 2, 6)
+
+            if pick_number == latest_allowed_pick:
+                forced_seed = seed
                 break
 
-        selected = forced if forced else remaining[0]
+        if forced_seed:
+            selected = forced_seed
+        elif pick_number == 3:
+            selected = weighted_draw(remaining, PICK_3_WEIGHTS)
+        else:
+            selected = remaining[0]
+
         final_order.append(selected)
         used.add(selected)
 
@@ -109,14 +118,7 @@ def home():
         pick_2 = weighted_draw(available, PICK_2_WEIGHTS)
         available.remove(pick_2)
 
-    # Pick 3 must enforce the max-drop rule for Seed 1.
-# If Seed 1 has not been drawn by Pick 3, Seed 1 must get Pick 3.
-if 1 in available:
-    pick_3 = 1
-else:
-    pick_3 = weighted_draw(available, PICK_3_WEIGHTS)
-
-        final_order = enforce_max_drop([pick_1, pick_2, pick_3])
+        final_order = build_final_order([pick_1, pick_2])
 
         results = [
             {
@@ -128,7 +130,9 @@ else:
             for index, seed in enumerate(final_order)
         ]
 
-        saved_run_number = save_lottery_run(league_year, teams, results, final_order)
+        saved_run_number = save_lottery_run(
+            league_year, teams, results, final_order
+        )
 
     return render_template(
         "index.html",
@@ -147,7 +151,6 @@ def history():
     )
 
     runs = response.data or []
-
     daily_counts = {}
 
     for run in runs:
