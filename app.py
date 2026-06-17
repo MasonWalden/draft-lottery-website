@@ -109,7 +109,12 @@ def home():
         pick_2 = weighted_draw(available, PICK_2_WEIGHTS)
         available.remove(pick_2)
 
-        pick_3 = weighted_draw(available, PICK_3_WEIGHTS)
+    # Pick 3 must enforce the max-drop rule for Seed 1.
+# If Seed 1 has not been drawn by Pick 3, Seed 1 must get Pick 3.
+if 1 in available:
+    pick_3 = 1
+else:
+    pick_3 = weighted_draw(available, PICK_3_WEIGHTS)
 
         final_order = enforce_max_drop([pick_1, pick_2, pick_3])
 
